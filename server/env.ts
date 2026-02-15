@@ -11,6 +11,9 @@ export const env = createEnv({
     BETTER_STACK_LOGS_DSN: z.url(),
     BETTER_STACK_LOGS_TOKEN: z.string(),
 
+    SUPABASE_URL: z.url(),
+    SUPABASE_SECRET_KEY: z.string(),
+
     APP_URL: z.url(),
   },
   runtimeEnv: process.env,
