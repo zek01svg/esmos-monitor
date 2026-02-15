@@ -13,7 +13,7 @@ export default async function uploadScreenshot(
   const sanitizedTitle = testTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   const filePath = `failures/${new Date().toISOString().toLocaleString()}_${sanitizedTitle}.png`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('test-failures')
     .upload(filePath, screenshotBuffer, {
       contentType: 'image/png',
