@@ -9,3 +9,5 @@ node_modules/
 /playwright/.auth/
 
 .env.production
+
+.build/
