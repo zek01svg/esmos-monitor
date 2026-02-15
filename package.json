@@ -7,7 +7,8 @@
     "prepare": "husky",
     "load-env": "dotenv -e .env --",
     "build": "bun load-env bun build --production --minify --target=bun --outdir=build server/index.ts",
-    "start": "NODE_ENV=production bun load-env bun build/index.js"
+    "start": "NODE_ENV=production bun load-env bun build/index.js",
+    "test": "bun run load-env -- bun run playwright test server/tests/e2e"
   },
   "dependencies": {
     "@logtail/pino": "^0.5.7",

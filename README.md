@@ -97,7 +97,7 @@ bun run start
 To execute the Playwright End-to-End tests against the configured target:
 
 ```bash
-bun run load-env -- bun x playwright test
+bun run test
 ```
 
 ## 🧪 Testing Strategy
