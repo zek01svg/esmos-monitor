@@ -1,33 +1,30 @@
-# 🖥️ ESMOS Monitor
+# 🛡️ ESMOS Monitor
 
 ## ℹ️ Overview
 
 **ESMOS Monitor** is a specialized monitoring application designed to ensure the reliability and user experience of the **Everyday Sustainable Meals Ordering System (ESMOS)** platform.
 
-While our current monitoring strategy relies on **Better Stack Uptime** for availability checks and **Azure Alerts** for infrastructure health, this application fills a critical gap by providing **End-to-End (E2E) UI verification**. It actively simulates user interactions to ensure that key user journeys—from landing page navigation to functional elements—are performing as expected in the production environment.
+While G8T1's current monitoring strategy relies on **[Better Stack Uptime](https://betterstack.com/uptime)** for availability checks and **[Azure Alerts](https://azure.microsoft.com/en-us/products/monitor/alerts)** for infrastructure health, this application fills a critical gap by providing **End-to-End (E2E) UI verification**. It actively simulates user interactions to ensure that key user journeys—from landing page navigation to functional elements—are performing as expected in the production environment.
 
 ## ✨ Features
 
 - **E2E UI Verification**: Uses [Playwright](https://playwright.dev/) to test the actual user interface, ensuring elements like navigation, buttons, and forms are visible and functional.
-- **Error Tracking**: Uses the [Sentry SDK](https://sentry.io/) to capture and report test failures to Better Stack Errors and uploads screenshots to [Supabase Storage](https://supabase.com/storage).
-- **Structured Logging**: Uses [Pino](https://github.com/pinojs/pino) for high-performance, structured logging, integrated with Better Stack Logs.
-- **Modern Stack**: Built with [Bun](https://bun.sh/) and [Hono](https://hono.dev/) for speed and efficiency.
+- **Error Tracking**: Uses the [Sentry SDK](https://sentry.io/) to capture and report test failures to [Better Stack Errors](https://betterstack.com/errors) and uploads screenshots to [Supabase Storage](https://supabase.com/storage).
+- **Structured Logging**: Uses [Pino](https://github.com/pinojs/pino) for high-performance, structured logging, integrated with [Better Stack Logs](https://betterstack.com/logs).
 
 ## 🛠️ Tech Stack
 
-- **Runtime**: [Bun](https://bun.sh/)
-- **Framework**: [Hono](https://hono.dev/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Testing**: [Playwright](https://playwright.dev/)
 - **Error Tracking**: [Sentry](https://sentry.io/)
 - **Logging**: [Pino](https://getpino.io/)
 - **Tracking**: [Better Stack](https://betterstack.com/)
-- **Validation**: [Zod](https://zod.dev/)
+- **Validation**: [Zod](https://zod.dev/) and [T3 Env](https://env.t3.gg/)
 - **Storage**: [Supabase](https://supabase.com/)
 
 ## ✅ Prerequisites
 
-- **Bun (>= 1.3.0)**: This project uses Bun as the runtime and script runner.
+- **Node.js (>= 22.14.0)**: Playwright uses Node.js as its runtime by default.
 - **pnpm (>= 10.20.0)**: The project uses `pnpm` for dependency management.
 
 ## 📦 Installation
@@ -40,73 +37,84 @@ While our current monitoring strategy relies on **Better Stack Uptime** for avai
 
 2.  **Install dependencies:**
     ```bash
-    pnpm install
+    pnpm install --frozen-lockfile
     ```
-    _Note: While `bun` is used for scripts, `pnpm` is the package manager defined in `package.json`._
 
 ## ⚙️ Configuration
 
 The application requires environment variables to be set. Create a `.env` file in the root directory based on the following schema (see `server/env.ts` for details):
 
 ```env
-# Server Configuration
-NODE_ENV=development # or production
-PORT=3000
-APP_URL=http://localhost:3000
-
-# Better Stack Integration
+# Better Stack
 BETTER_STACK_ERROR_DSN=your_dsn_here
 BETTER_STACK_ERROR_TOKEN=your_token_here
 BETTER_STACK_LOGS_DSN=your_logs_dsn_here
 BETTER_STACK_LOGS_TOKEN=your_logs_token_here
 
-# Supabase Integration
+# Supabase
 SUPABASE_URL=your_supabase_url
 SUPABASE_SECRET_KEY=your_supabase_key
 
-# Target Application URL (for Playwright)
-# Defined in playwright.config.ts or overridden via env if supported
 ```
 
 ## 🚀 Usage
 
-### Development
+### Development (Local)
 
-To start the Hono server in development mode with hot reloading:
+To run tests locally using variables from `.env`:
 
 ```bash
-bun run dev
+pnpm run test
 ```
 
-### Production Build
+### Production
 
-To build the application for production:
-
-```bash
-bun run build
-```
-
-To start the production server:
+To build image for production and/or run tests in a container:
 
 ```bash
-bun run start
-```
-
-### Running E2E Tests
-
-To execute the Playwright End-to-End tests against the configured target:
-
-```bash
-bun run test
+pnpm run build:docker
+docker run --env-file .env esmos-monitor
 ```
 
 ## 🧪 Testing Strategy
 
-The E2E tests are located in `server/tests/e2e` and focus on validating the critical paths of the ESMOS application:
+The E2E tests are located in `server/tests/e2e` and provide comprehensive coverage of the user journey, ensuring critical functionalities are operational.
 
-- **Homepage**: Verifies title, URL, and hero section content.
-- **Navigation**: Checks for the existence and functionality of the top menu, including "Sign in" and "Cart".
-- **Content Sections**: Validates the visibility of "Your Meal, Your Way", statistics, and other visual blocks.
-- **Footer**: Ensures all footer links, contact information, and social media icons are present.
+### 🏠 Homepage (`homepage.test.ts`)
 
-Failed tests automatically capture screenshots and report errors to the configured monitoring services.
+- **Navigation & Header**: Verifies logo, main menu links, "Sign in" button, search modal, and cart icon.
+- **Hero Section**: Checks for correct headlines, subtext, and call-to-action buttons.
+- **Feature Blocks**: Validates visibility of "Your Meal, Your Way" section and statistical numbers.
+- **Footer**: Ensures integrity of "Useful Links", "About us", contact details, social media links, and copyright notices.
+
+### 🔐 Authentication (`login.test.ts`)
+
+- **Login Flow**: Verifies navigation to the login page and form existence.
+- **Multi-Role Support**: Validates successful login for key roles: System Configurator, Product Manager, Data Manager, Security Manager, and Support Manager.
+- **Redirection**: Ensures users are correctly redirected to the Odoo backend upon successful login.
+
+### 🛍️ Shop (`shop.test.ts`)
+
+- **Product Grid**: Verifies the display of the product grid, ensuring exactly 10 items are shown.
+- **Product Details**: Iterates through all products (e.g., "Low Carb Meal Plan", "Superfood Boost") to verify that clicking them opens the correct detail page with accurate names and prices.
+- **Search & Sort**: Checks for the existence of the search bar and sorting options.
+
+### 📞 Contact Us (`contact.test.ts`)
+
+- **Form Validation**: Tests both successful submission and error handling for empty/invalid inputs.
+- **Information Accuracy**: Verifies sidebar contact details (Phone, Email, Company).
+- **Navigation**: Ensures smooth navigation from the homepage to the contact section.
+
+### 🛠️ Services (`services.test.ts`)
+
+- **Content Verification**: Validates service highlights like "Fresh Ingredients" and "Seasonal Specials".
+- **Interactive Elements**: Checks the functionality of the quotes carousel.
+- **Social Proof**: Verifies the presence of the "Happy Customers" section.
+
+## 🛡️ Monitoring Strategy
+
+If any test fails, it will automatically capture a screenshot and report the error to the configured monitoring services.
+
+- **Better Stack Errors**: Reports the error to Better Stack Errors.
+- **Better Stack Logs**: Logs the error to Better Stack Logs.
+- **Supabase Storage**: Uploads the screenshot to Supabase Storage.
