@@ -6,7 +6,8 @@
     "prepare": "husky",
     "load-env": "dotenv -e .env --",
     "test:dev": "pnpm run load-env -- pnpm run playwright test server/tests/e2e --ui",
-    "test:prod": "pnpm run playwright test server/tests/e2e"
+    "test:prod": "playwright test server/tests/e2e",
+    "build:docker": "docker build -t esmos-monitor ."
   },
   "dependencies": {
     "@logtail/pino": "^0.5.7",
