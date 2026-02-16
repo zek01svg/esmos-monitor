@@ -14,7 +14,7 @@ importers:
       '@playwright/test':
         specifier: ^1.58.2
         version: 1.58.2
-      '@sentry/bun':
+      '@sentry/node':
         specifier: ^10.38.0
         version: 10.38.0
       '@supabase/supabase-js':
@@ -23,9 +23,6 @@ importers:
       '@t3-oss/env-core':
         specifier: ^0.13.10
         version: 0.13.10(typescript@5.9.3)(zod@4.3.6)
-      hono:
-        specifier: ^4.11.9
-        version: 4.11.9
       pino:
         specifier: ^10.3.1
         version: 10.3.1
@@ -36,9 +33,6 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
-      '@sentry/node':
-        specifier: ^10.38.0
-        version: 10.38.0
       '@types/bun':
         specifier: latest
         version: 1.3.9
@@ -303,10 +297,6 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.8
 
-  '@sentry/bun@10.38.0':
-    resolution: {integrity: sha512-8a2s+FVeqI2l12RNMFFEjAXpAUkqNZeGXTvHtjzcyWASW9szBNhOpiKN8oy0R/wUeIWgHpdnUeOSBhVKzH5YfQ==}
-    engines: {node: '>=18'}
-
   '@sentry/core@10.38.0':
     resolution: {integrity: sha512-1pubWDZE5y5HZEPMAZERP4fVl2NH3Ihp1A+vMoVkb3Qc66Diqj1WierAnStlZP7tCx0TBa0dK85GTW/ZFYyB9g==}
     engines: {node: '>=18'}
@@ -510,10 +500,6 @@ packages:
 
   help-me@5.0.0:
     resolution: {integrity: sha512-7xgomUX6ADmcYzFik0HzAxh/73YlKR9bmFzf51CZwR+b6YtzU2m0u49hQCqV6SvlqIqsaxovfwdvbnsw3b/zpg==}
-
-  hono@4.11.9:
-    resolution: {integrity: sha512-Eaw2YTGM6WOxA6CXbckaEvslr2Ne4NFsKrvc0v97JD5awbmeBLO5w9Ho9L9kmKonrwF9RJlW6BxT1PVv/agBHQ==}
-    engines: {node: '>=16.9.0'}
 
   husky@9.1.7:
     resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
@@ -1040,13 +1026,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@sentry/bun@10.38.0':
-    dependencies:
-      '@sentry/core': 10.38.0
-      '@sentry/node': 10.38.0
-    transitivePeerDependencies:
-      - supports-color
-
   '@sentry/core@10.38.0': {}
 
   '@sentry/node-core@10.38.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@2.5.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@2.5.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.211.0(@opentelemetry/api@1.9.0))(@opentelemetry/resources@2.5.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@2.5.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.39.0)':
@@ -1275,8 +1254,6 @@ snapshots:
   globals@17.3.0: {}
 
   help-me@5.0.0: {}
-
-  hono@4.11.9: {}
 
   husky@9.1.7: {}
 
