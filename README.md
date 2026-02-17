@@ -10,7 +10,7 @@ While G8T1's current monitoring strategy relies on **[Better Stack Uptime](https
 
 - **E2E UI Verification**: Uses [Playwright](https://playwright.dev/) to test the actual user interface, ensuring elements like navigation, buttons, and forms are visible and functional.
 - **Error Tracking**: Uses the [Sentry SDK](https://sentry.io/) to capture and report test failures to [Better Stack Errors](https://betterstack.com/errors) and uploads screenshots to [Supabase Storage](https://supabase.com/storage).
-- **Structured Logging**: Uses [Pino](https://github.com/pinojs/pino) for high-performance, structured logging, integrated with [Better Stack Logs](https://betterstack.com/logs).
+- **Structured Logging**: Uses [Pino](https://getpino.io/) for high-performance, structured logging, integrated with [Better Stack Logs](https://betterstack.com/logs).
 
 ## 🛠️ Tech Stack
 
@@ -42,29 +42,20 @@ While G8T1's current monitoring strategy relies on **[Better Stack Uptime](https
 
 ## ⚙️ Configuration
 
-The application requires environment variables to be set. Create a `.env` file in the root directory based on the following schema (see `server/env.ts` for details):
+The application requires environment variables to be set. Run the following command to create a `.env` file in the root directory and populate the variables.
 
-```env
-# Better Stack
-BETTER_STACK_ERROR_DSN=your_dsn_here
-BETTER_STACK_ERROR_TOKEN=your_token_here
-BETTER_STACK_LOGS_DSN=your_logs_dsn_here
-BETTER_STACK_LOGS_TOKEN=your_logs_token_here
-
-# Supabase
-SUPABASE_URL=your_supabase_url
-SUPABASE_SECRET_KEY=your_supabase_key
-
+```bash
+cp .env.example .env
 ```
 
 ## 🚀 Usage
 
 ### Development (Local)
 
-To run tests locally using variables from `.env`:
+To run tests locally:
 
 ```bash
-pnpm run test
+pnpm run test:dev
 ```
 
 ### Production
@@ -118,3 +109,21 @@ If any test fails, it will automatically capture a screenshot and report the err
 - **Better Stack Errors**: Reports the error to Better Stack Errors.
 - **Better Stack Logs**: Logs the error to Better Stack Logs.
 - **Supabase Storage**: Uploads the screenshot to Supabase Storage.
+
+## 🏗️ Execution Architecture
+
+The monitor runs as an **Azure Container App Job** every 10 minutes.
+
+- **VM Status Check**: Before running tests, the job executes a "pre-flight" check (`server/services/check-vm.ts`) to verify if the target Azure VM is running.
+  - If the VM is **Running**: Tests proceed.
+  - If the VM is **Stopped/Deallocated**: The job exits successfully (skipping tests) to conserve resources and avoid false alerts.
+
+## 🚀 CI/CD
+
+A GitHub Actions workflow (`.github/workflows/deploy.yml`) handles deployment:
+
+1.  **Trigger**: Pushes to `main`.
+2.  **Build**: Builds the Docker image.
+3.  **Push**: Pushes the image to Azure Container Registry (ACR).
+4.  **Deploy**: Updates the Azure Container App Job with the new image.
+5.  **Authentication**: Uses **OpenID Connect (OIDC)** with Azure Managed Identity for secure, keyless access.
