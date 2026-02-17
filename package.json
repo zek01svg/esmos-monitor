@@ -6,7 +6,7 @@
     "prepare": "husky",
     "load-env": "dotenv -e .env.production --",
     "test:dev": "pnpm run load-env -- pnpm run playwright test server/tests/e2e --ui",
-    "test:prod": "pnpm run load-env -- pnpm run tsx server/scripts/check-vm.ts",
+    "test:prod": "pnpm run tsx server/scripts/check-vm.ts",
     "build:docker": "docker build -t esmos-monitor ."
   },
   "dependencies": {
