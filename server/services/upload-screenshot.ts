@@ -21,7 +21,7 @@ export default async function uploadScreenshot(
     });
 
   if (error) {
-    logger.error(error);
+    logger.error(error, 'Supabase Storage error');
     throw new Error(error.message);
   }
 

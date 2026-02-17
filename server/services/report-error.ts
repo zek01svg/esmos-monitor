@@ -19,8 +19,8 @@ export default async function logAndReportError(
 
     logger.error(errorMessage);
     if (error) {
-      logger.error(`Error: ${error.message}`);
-      logger.error(`Stack: ${error.stack}`);
+      logger.error(error, `Error`);
+      logger.error(error, `Stack`);
     }
 
     Sentry.captureException(error);
