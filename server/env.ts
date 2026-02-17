@@ -10,10 +10,6 @@ export const env = createEnv({
 
     SUPABASE_URL: z.url(),
     SUPABASE_SECRET_KEY: z.string(),
-
-    AZURE_SUBSCRIPTION_ID: z.string(),
-    AZURE_RESOURCE_GROUP: z.string(),
-    AZURE_VM_NAME: z.string(),
   },
   runtimeEnv: process.env,
   skipValidation:
