@@ -5,13 +5,11 @@
   "scripts": {
     "prepare": "husky",
     "load-env": "dotenv -e .env.production --",
-    "test:dev": "pnpm run load-env -- pnpm run playwright test server/tests/e2e --ui",
-    "test:prod": "tsx server/services/check-vm.ts",
-    "build:docker": "docker build -t esmos-monitor ."
+    "test:dev": "pnpm run load-env pnpm run playwright test server/tests/e2e --ui",
+    "test:prod": "playwright test server/tests/e2e",
+    "build:docker": "docker build -t esmos-monitor:v1 ."
   },
   "dependencies": {
-    "@azure/arm-compute": "^23.3.0",
-    "@azure/identity": "^4.13.0",
     "@logtail/pino": "^0.5.7",
     "@playwright/test": "^1.58.2",
     "@sentry/node": "^10.38.0",
@@ -28,8 +26,7 @@
     "dotenv-cli": "^11.0.0",
     "globals": "^17.3.0",
     "husky": "^9.1.7",
-    "prettier": "^3.8.1",
-    "tsx": "^4.21.0"
+    "prettier": "^3.8.1"
   },
   "packageManager": "pnpm@10.20.0"
 }
