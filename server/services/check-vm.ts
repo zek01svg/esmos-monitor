@@ -3,6 +3,7 @@ import { DefaultAzureCredential } from '@azure/identity';
 import { env } from '../env.ts';
 import { spawn } from 'child_process';
 import logger from 'server/lib/pino.ts';
+import initSentry from 'server/lib/sentry';
 
 async function checkVmAndRunTests() {
   logger.info(
@@ -34,7 +35,10 @@ async function checkVmAndRunTests() {
       process.exit(0);
     }
   } catch (error) {
+    const Sentry = initSentry();
     logger.error(error, 'Error checking VM status');
+    Sentry.captureException(error);
+
     process.exit(1);
   }
 }

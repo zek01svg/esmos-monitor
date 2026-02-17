@@ -1,5 +1,6 @@
 import { supabase } from 'server/lib/supabase';
 import logger from 'server/lib/pino';
+import initSentry from 'server/lib/sentry';
 
 /**
  * Uploads a screenshot to Supabase Storage.
@@ -12,6 +13,7 @@ export default async function uploadScreenshot(
 ): Promise<void> {
   const sanitizedTitle = testTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   const filePath = `failures/${new Date().toISOString().toLocaleString()}_${sanitizedTitle}.png`;
+  const Sentry = initSentry();
 
   const { error } = await supabase.storage
     .from('test-failures')
@@ -22,7 +24,7 @@ export default async function uploadScreenshot(
 
   if (error) {
     logger.error(error, 'Supabase Storage error');
-    throw new Error(error.message);
+    Sentry.captureException(error);
   }
 
   const { data: publicUrlData } = supabase.storage
