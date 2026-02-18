@@ -14,13 +14,34 @@ test.describe('Shop Page', () => {
     await page.goto('/shop');
   });
 
-  test('should load the shop page with correct title', async ({ page }) => {
+  test('should load page with correct title', async ({ page }) => {
     await expect(page).toHaveTitle('Shop | My Website');
   });
 
   test('should have a search bar', async ({ page }) => {
     const searchInput = page.getByRole('search');
     await expect(searchInput).toBeVisible();
+  });
+
+  test('should have sorting options', async ({ page }) => {
+    await expect(page.getByRole('button', { name: 'Featured' })).toBeVisible();
+    await page.getByRole('button', { name: 'Featured' }).click();
+
+    await expect(
+      page.getByRole('menuitem', { name: 'Featured' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('menuitem', { name: 'Newest Arrivals' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('menuitem', { name: 'Name (A-Z)' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('menuitem', { name: 'Price - Low to High' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('menuitem', { name: 'Price - High to Low' }),
+    ).toBeVisible();
   });
 
   test('should display product grid', async ({ page }) => {
@@ -48,14 +69,13 @@ test.describe('Shop Page', () => {
     ];
 
     for (const productName of productNames) {
-      const productLink = page
-        .locator(`.oe_product a:has-text("${productName}")`)
-        .first();
-      await expect(productLink).toBeVisible();
+      await expect(page.getByText(productName, { exact: true })).toBeVisible();
     }
   });
 
-  test('should verify product details for all items', async ({ page }) => {
+  test('should display correct product details for all items', async ({
+    page,
+  }) => {
     const products = [
       { name: 'Low Carb meal plan', price: '50.00' },
       { name: 'Weight Loss Wonders', price: '47.00' },
@@ -77,30 +97,17 @@ test.describe('Shop Page', () => {
         .getByRole('link')
         .click();
 
-      const header = page.locator('h1[itemprop="name"]');
-      await expect(header).toBeVisible();
-      await expect(header).toHaveText(product.name);
+      // product name
+      await expect(
+        page.getByRole('heading', { name: product.name }),
+      ).toBeVisible();
 
-      const priceTag = page.locator(
-        '.product_price h3.css_editable_mode_hidden',
-      );
-      await expect(priceTag).toBeVisible();
-      await expect(priceTag).toContainText(product.price);
+      // product price
+      await expect(page.getByText('$').first()).toBeVisible();
+      await expect(page.getByText('$').first()).toContainText(product.price);
+
+      // product img
+      await expect(page.getByRole('img', { name: product.name })).toBeVisible();
     }
-  });
-
-  test('should have sorting options', async ({ page }) => {
-    const sortDropdown = page.locator('.o_sortby_dropdown');
-    await expect(sortDropdown).toBeVisible();
-
-    await sortDropdown.click();
-    const featuredOption = page.locator('.dropdown-item', {
-      hasText: 'Featured',
-    });
-    await expect(featuredOption).toBeVisible();
-    const priceHighLow = page.locator('.dropdown-item', {
-      hasText: 'Price - High to Low',
-    });
-    await expect(priceHighLow).toBeVisible();
   });
 });

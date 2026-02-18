@@ -18,60 +18,62 @@ test.describe('Services Page', () => {
     page,
   }) => {
     await expect(page).toHaveTitle('Services | My Website');
-    const h1 = page.locator('h1');
-    await expect(h1).toBeVisible();
-    await expect(h1).toHaveText('Services');
+    await expect(page.getByRole('heading', { name: 'Services' })).toBeVisible();
   });
 
-  test('should display service columns with correct content', async ({
-    page,
-  }) => {
-    const freshIngredients = page.locator('.card-body h3', {
-      hasText: 'Fresh Ingredients',
-    });
-    await expect(freshIngredients).toBeVisible();
+  test('should display three cards with correct content', async ({ page }) => {
+    await expect(page.locator('img').nth(2)).toBeVisible();
     await expect(
-      page.locator('.card-text', { hasText: 'Customize your meal plan' }),
+      page.getByRole('heading', { name: 'Fresh Ingredients' }),
     ).toBeVisible();
-
-    const seasonalSpecials = page.locator('.card-body h3', {
-      hasText: 'Seasonal Specials',
-    });
-    await expect(seasonalSpecials).toBeVisible();
+    await expect(page.locator('#wrap')).toContainText(
+      'Customize your meal plan to fit your dietary needs. Choose from a variety of options to suit your lifestyle.',
+    );
+    await expect(page.locator('img').nth(3)).toBeVisible();
     await expect(
-      page.locator('.card-text', { hasText: 'To add a fourth meal option' }),
+      page.getByRole('heading', { name: 'Seasonal Specials' }),
     ).toBeVisible();
-
-    const quickMealPrep = page.locator('.card-body h3', {
-      hasText: 'Quick Meal Prep',
-    });
-    await expect(quickMealPrep).toBeVisible();
+    await expect(page.locator('#wrap')).toContainText(
+      'To add a fourth meal option, adjust the sizes of these three options using the right icon. Then, duplicate one of the meal choices to create a new one.',
+    );
+    await expect(page.locator('img').nth(4)).toBeVisible();
     await expect(
-      page.locator('.card-text', { hasText: 'Replace the above image' }),
-    ).toBeVisible(); // Based on placeholder text in provided HTML
+      page.getByRole('heading', { name: 'Quick Meal Prep' }),
+    ).toBeVisible();
+    await expect(page.locator('#wrap')).toContainText(
+      'Replace the above image with a vibrant photo of our delicious meals. Click to adjust the image style.',
+    );
   });
 
   test('should display quotes carousel', async ({ page }) => {
-    const carousel = page.locator('.s_quotes_carousel');
-    await expect(carousel).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.carousel-item.active');
 
-    // Check for at least one quote visibility (might need to wait for carousel but at least one item is active)
-    const activeQuote = carousel.locator('.carousel-item.active blockquote');
-    await expect(activeQuote).toBeVisible();
-    const quoteText = activeQuote.locator('p');
-    // Based on HTML, the active quote is "The best meal delivery service..."
-    await expect(quoteText).toContainText('The best meal delivery service');
+    await expect(page.getByText('"The best meal delivery')).toBeVisible();
+    await expect(page.getByText('Jane DOE • CEO of Gourmet')).toBeVisible();
+    await page.locator('.carousel-control-next-icon').click();
+    await expect(page.getByText('Jane DOE • CEO of Gourmet')).toBeHidden();
+
+    await expect(page.getByText('" Healthy meals delivered')).toBeVisible();
+    await expect(page.getByText('David Johnson • Founder of')).toBeVisible();
+    await page.locator('.carousel-control-next-icon').click();
+    await expect(page.getByText('David Johnson • Founder of')).toBeHidden();
+
+    await expect(page.getByText('" Perfectly portioned,')).toBeVisible();
+    await expect(page.getByText('Iris SMITH • Head Chef at')).toBeVisible();
   });
 
   test('should display happy customers section', async ({ page }) => {
+    await expect(
+      page.getByRole('heading', { name: 'Our Happy Customers' }),
+    ).toBeVisible();
+    await expect(page.locator('#wrap')).toContainText(
+      'Join our community of food lovers.',
+    );
+    // There are 6 images in the row
     const referencesSection = page.locator('section.s_references');
     await expect(referencesSection).toBeVisible();
-
-    const heading = referencesSection.locator('h2');
-    await expect(heading).toHaveText('Our Happy Customers');
-
     const customerImages = referencesSection.locator('img');
-    // There are 6 images in the row
     await expect(customerImages).toHaveCount(6);
   });
 });
