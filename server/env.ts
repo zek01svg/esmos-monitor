@@ -3,6 +3,9 @@ import { z } from 'zod/v4';
 
 export const env = createEnv({
   server: {
+    NODE_ENV: z.enum(['development', 'production']).default('production'),
+    FORCE_COLOR: z.string().default('false'),
+
     BETTER_STACK_ERROR_DSN: z.url(),
     BETTER_STACK_ERROR_TOKEN: z.string(),
     BETTER_STACK_LOGS_DSN: z.url(),
