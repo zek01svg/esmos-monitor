@@ -64,7 +64,7 @@ To build image for production and/or run tests in a container:
 
 ```bash
 pnpm run build:docker
-docker run --env-file .env esmos-monitor
+docker run --env-file .env esmos-monitor:v1
 ```
 
 ## 🧪 Testing Strategy
@@ -112,11 +112,14 @@ If any test fails, it will automatically capture a screenshot and report the err
 
 ## 🏗️ Execution Architecture
 
-The monitor runs as an **Azure Container App Job** every 10 minutes.
+To optimize costs and performance, the architecture decouples the scheduling logic from the test execution:
 
-- **VM Status Check**: Before running tests, the job executes a "pre-flight" check (`server/services/check-vm.ts`) to verify if the target Azure VM is running.
-  - If the VM is **Running**: Tests proceed.
-  - If the VM is **Stopped/Deallocated**: The job exits successfully (skipping tests) to conserve resources and avoid false alerts.
+1.  **Trigger (Azure Function)**: A lightweight Azure Function that runs every 10 minutes.
+    - Checks the status of the target Azure VM.
+    - If the VM is **Running**, it triggers the Container App Job.
+    - If the VM is **Stopped**, it skips execution entirely.
+
+2.  **Execution (Container App Job)**: The job runs the Playwright tests immediately when triggered, without needing to perform any environment checks itself.
 
 ## 🚀 CI/CD
 
