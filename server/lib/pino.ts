@@ -14,7 +14,7 @@ const transport = pino.transport({
     {
       target: 'pino-pretty',
       options: {
-        colorize: true,
+        colorize: env.NODE_ENV === 'development',
       },
       level: 'info',
     },
