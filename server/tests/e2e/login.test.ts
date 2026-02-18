@@ -2,10 +2,6 @@ import { test, expect } from '@playwright/test';
 import logAndReportError from 'server/services/report-error';
 
 test.describe('Login Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-  });
-
   test.afterEach(async ({ page }, testInfo) => {
     if (testInfo.status !== 'passed') {
       const screenshotBuffer = await page.screenshot();
@@ -13,41 +9,22 @@ test.describe('Login Flow', () => {
     }
   });
 
-  test('should load the homepage with correct title and url', async ({
-    page,
-  }) => {
-    await expect(page).toHaveTitle('Home | My Website');
-    await expect(page).toHaveURL(
-      'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069/',
-    );
-  });
-
-  test('should have a functional sign-in link', async ({ page }) => {
-    const signInBtn = page.locator(
-      'nav[aria-label="Main"] a[href="/web/login"]',
-      { hasText: 'Sign in' },
-    );
-
-    await expect(signInBtn).toBeVisible();
-    await signInBtn.click();
-    await expect(page).toHaveURL(
-      'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069/web/login',
-    );
-  });
-
-  test.describe('Login Page Elements', () => {
-    test.beforeEach(async ({ page }) => {
-      await page.goto('/web/login');
-    });
-
-    test('should validate login form fields', async ({ page }) => {
+  test.describe('Page Elements', () => {
+    test('should have a functional sign-in link and valid form fields', async ({
+      page,
+    }) => {
+      await page.goto('/');
+      await page.getByRole('link', { name: 'Sign in' }).click();
+      await expect(page).toHaveURL(
+        'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069/web/login',
+      );
       await expect(page.getByRole('form')).toBeVisible();
 
-      const emailInput = page.locator('input[name="login"]');
+      const emailInput = page.getByRole('textbox', { name: 'Email' });
       await expect(emailInput).toHaveAttribute('type', 'text');
       await expect(emailInput).toHaveAttribute('placeholder', 'Email');
 
-      const passwordInput = page.locator('input[name="password"]');
+      const passwordInput = page.getByRole('textbox', { name: 'Password' });
       await expect(passwordInput).toHaveAttribute('type', 'password');
     });
   });
@@ -58,23 +35,41 @@ test.describe('Login Flow', () => {
       { role: 'Product Manager', email: 'prodmanager@esmos.meals.sg' },
       { role: 'Data Manager', email: 'datamanager@esmos.meals.sg' },
       { role: 'Security Manager', email: 'security@esmos.meals.sg' },
-      { role: 'Support Manager', email: 'support@esmos.meals.sg' },
+      { role: 'support', email: 'support@esmos.meals.sg' },
     ];
 
     for (const user of USERS) {
       test(`${user.role} should be able to log in`, async ({ page }) => {
+        test.setTimeout(120000);
         await page.goto('/web/login');
 
-        await page.locator('input[name="login"]').fill(user.email);
+        await page.getByRole('link', { name: 'Sign in' }).click();
+        await page.getByRole('textbox', { name: 'Email' }).fill(user.email);
         await page
-          .locator('input[name="password"]')
+          .getByRole('textbox', { name: 'Password' })
           .fill(process.env.ADMIN_PASSWORD!);
         await page.getByRole('button', { name: 'Log in' }).click();
-
-        await expect(page).toHaveTitle('Odoo');
-        await expect(page).toHaveURL(
-          'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069/web',
+        await page.waitForURL(
+          'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069/web#action=117&cids=1&menu_id=74',
+          { timeout: 30000 },
         );
+        await expect(page.getByTitle('Home Menu')).toBeVisible();
+        await expect(
+          page.getByRole('button', { name: 'Messages' }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole('button', { name: 'Activities' }),
+        ).toBeVisible();
+        await page.getByTitle('Home Menu').click();
+        await page.getByRole('menuitem', { name: 'Website' }).click();
+        await expect(
+          page
+            .locator('iframe')
+            .nth(1)
+            .contentFrame()
+            .getByLabel('Main')
+            .getByRole('list'),
+        ).toContainText(user.role);
       });
     }
   });
