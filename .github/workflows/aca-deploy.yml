@@ -44,6 +44,10 @@ jobs:
         uses: azure/CLI@v1
         with:
           inlineScript: |
+            az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+            az containerapp job list --resource-group esmos-monitor -o table
+
             az containerapp job update \
               --name esmos-monitor-job \
               --resource-group esmos-monitor \
