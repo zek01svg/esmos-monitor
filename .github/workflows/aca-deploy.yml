@@ -45,6 +45,6 @@ jobs:
         with:
           inlineScript: |
             az containerapp job update \
-              --name ${{ secrets.ACA_JOB_NAME }} \
-              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --name esmos-monitor-job \
+              --resource-group esmos-monitor \
               --image ${{ secrets.ACR_LOGIN_SERVER }}/esmos-monitor:latest
