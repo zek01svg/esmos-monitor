@@ -1,132 +1,208 @@
 # 🛡️ ESMOS Monitor
 
-## ℹ️ Overview
+> End-to-end UI monitoring for the [Everyday Sustainable Meals Ordering System (ESMOS)](http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069) platform, powered by Playwright and deployed as an Azure Container App Job.
 
-**ESMOS Monitor** is a specialized monitoring application designed to ensure the reliability and user experience of the **Everyday Sustainable Meals Ordering System (ESMOS)** platform.
+[![Deploy](https://github.com/zek01svg/esmos-monitor/actions/workflows/aca-deploy.yml/badge.svg)](https://github.com/zek01svg/esmos-monitor/actions/workflows/aca-deploy.yml)
 
-While G8T1's current monitoring strategy relies on **[Better Stack Uptime](https://betterstack.com/uptime)** for availability checks and **[Azure Alerts](https://azure.microsoft.com/en-us/products/monitor/alerts)** for infrastructure health, this application fills a critical gap by providing **End-to-End (E2E) UI verification**. It actively simulates user interactions to ensure that key user journeys—from landing page navigation to functional elements—are performing as expected in the production environment.
+## 💡 Why This Exists
 
-## ✨ Features
+G8T1's existing monitoring stack uses [Better Stack Uptime](https://betterstack.com/uptime) for availability checks and [Azure Alerts](https://azure.microsoft.com/en-us/products/monitor/alerts) for infrastructure health. However, neither approach validates the **actual user experience**—a page can return HTTP 200 while rendering a blank screen or hiding a broken form.
 
-- **E2E UI Verification**: Uses [Playwright](https://playwright.dev/) to test the actual user interface, ensuring elements like navigation, buttons, and forms are visible and functional.
-- **Error Tracking**: Uses the [Sentry SDK](https://sentry.io/) to capture and report test failures to [Better Stack Errors](https://betterstack.com/errors) and uploads screenshots to [Supabase Storage](https://supabase.com/storage).
-- **Structured Logging**: Uses [Pino](https://getpino.io/) for high-performance, structured logging, integrated with [Better Stack Logs](https://betterstack.com/logs).
+ESMOS Monitor fills that gap by running headless Playwright tests against the production UI on a 10-minute cadence, verifying that critical user journeys work end-to-end. When a test fails, the pipeline automatically:
+
+1. Captures a screenshot and uploads it to **Supabase Storage**.
+2. Reports the error to **Better Stack Errors** via the Sentry SDK.
+3. Logs structured context to **Better Stack Logs** via Pino.
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────┐
+│        Azure Function (Timer)       │  ← Runs every 10 min
+│  Checks VM status via Azure SDK     │
+└──────────────┬──────────────────────┘
+               │ VM is Running?
+               ▼
+┌─────────────────────────────────────┐
+│     Azure Container App Job         │  ← On-demand execution
+│  ┌───────────────────────────────┐  │
+│  │  Playwright E2E Test Suite    │  │
+│  │  (Chromium · 4 workers)       │  │
+│  └──────────┬────────────────────┘  │
+│             │ on failure            │
+│  ┌──────────▼────────────────────┐  │
+│  │  report-error service         │  │
+│  │  ├─ Sentry → Better Stack     │  │
+│  │  ├─ Pino   → Better Stack     │  │
+│  │  └─ Screenshot → Supabase     │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
+```
+
+The scheduling and execution layers are intentionally **decoupled**:
+
+| Layer         | Component               | Purpose                                                                                |
+| ------------- | ----------------------- | -------------------------------------------------------------------------------------- |
+| **Trigger**   | Azure Function (Timer)  | Checks if the target VM is running before triggering the job, avoiding wasted compute. |
+| **Execution** | Azure Container App Job | Runs the Playwright test suite inside a container. No environment checks—just tests.   |
 
 ## 🛠️ Tech Stack
 
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Testing**: [Playwright](https://playwright.dev/)
-- **Error Tracking**: [Sentry](https://sentry.io/)
-- **Logging**: [Pino](https://getpino.io/)
-- **Tracking**: [Better Stack](https://betterstack.com/)
-- **Validation**: [Zod](https://zod.dev/) and [T3 Env](https://env.t3.gg/)
-- **Storage**: [Supabase](https://supabase.com/)
+| Category       | Technology                                                                                         |
+| -------------- | -------------------------------------------------------------------------------------------------- |
+| Language       | [TypeScript](https://www.typescriptlang.org/) (ES2022, strict mode)                                |
+| Testing        | [Playwright](https://playwright.dev/) v1.58                                                        |
+| Error Tracking | [Sentry SDK](https://sentry.io/) → [Better Stack Errors](https://betterstack.com/errors)           |
+| Logging        | [Pino](https://getpino.io/) → [Better Stack Logs](https://betterstack.com/logs)                    |
+| Storage        | [Supabase Storage](https://supabase.com/storage) (failure screenshots)                             |
+| Env Validation | [Zod](https://zod.dev/) + [T3 Env](https://env.t3.gg/)                                             |
+| Container      | Docker ([`mcr.microsoft.com/playwright`](https://mcr.microsoft.com/en-us/artifact/mar/playwright)) |
+| CI/CD          | GitHub Actions → Azure Container Registry → Azure Container App Job                                |
+| Code Quality   | Prettier, Husky, lint-staged                                                                       |
 
-## ✅ Prerequisites
+## 🚀 Getting Started
 
-- **Node.js (>= 22.14.0)**: Playwright uses Node.js as its runtime by default.
-- **pnpm (>= 10.20.0)**: The project uses `pnpm` for dependency management.
+### ✅ Prerequisites
 
-## 📦 Installation
+| Tool                              | Version                            |
+| --------------------------------- | ---------------------------------- |
+| [Node.js](https://nodejs.org/)    | `>= 22.14.0`                       |
+| [pnpm](https://pnpm.io/)          | `>= 10.20.0`                       |
+| [Docker](https://www.docker.com/) | Latest (for container builds only) |
 
-1.  **Clone the repository:**
+### 📦 Installation
 
-    ```bash
-    git clone <repository-url>
-    ```
+```bash
+# Clone the repository
+git clone <repository-url>
+cd esmos-monitor
 
-2.  **Install dependencies:**
-    ```bash
-    pnpm install --frozen-lockfile
-    ```
+# Install dependencies
+pnpm install --frozen-lockfile
+```
 
-## ⚙️ Configuration
+### ⚙️ Configuration
 
-The application requires environment variables to be set. Run the following command to create a `.env` file in the root directory and populate the variables.
+Copy the example environment file and fill in the required values:
 
 ```bash
 cp .env.example .env
 ```
 
-## 🚀 Usage
+| Variable                   | Description                                               |
+| -------------------------- | --------------------------------------------------------- |
+| `NODE_ENV`                 | `development` or `production`                             |
+| `FORCE_COLOR`              | Set to `false` to disable ANSI color in Playwright output |
+| `BETTER_STACK_ERROR_DSN`   | Sentry-compatible DSN for Better Stack Errors             |
+| `BETTER_STACK_ERROR_TOKEN` | Auth token for Better Stack Errors                        |
+| `BETTER_STACK_LOGS_DSN`    | Endpoint URL for Better Stack Logs                        |
+| `BETTER_STACK_LOGS_TOKEN`  | Source token for Better Stack Logs                        |
+| `SUPABASE_URL`             | Supabase project URL                                      |
+| `SUPABASE_SECRET_KEY`      | Supabase service-role secret key                          |
+| `ADMIN_PASSWORD`           | Password used to test multi-role login flows              |
 
-### Development (Local)
+> [!NOTE]
+> Environment variables are validated at startup using [T3 Env](https://env.t3.gg/) with Zod schemas (see [`server/env.ts`](server/env.ts)). Missing or invalid values will cause an immediate, descriptive error.
 
-To run tests locally:
+## 🧑‍💻 Usage
+
+**Run tests locally** (loads env from `.env.production` via `dotenv-cli`):
 
 ```bash
 pnpm run test:dev
 ```
 
-### Production
-
-To build image for production and/or run tests in a container:
+**Build and run via Docker** (mirrors production):
 
 ```bash
 pnpm run build:docker
-docker run --env-file .env esmos-monitor:v1
+docker run --env-file .env esmos-monitor
 ```
 
-## 🧪 Testing Strategy
+## 🧪 Test Coverage
 
-The E2E tests are located in `server/tests/e2e` and provide comprehensive coverage of the user journey, ensuring critical functionalities are operational.
+All E2E tests live in [`server/tests/e2e/`](server/tests/e2e/) and target the production ESMOS application.
 
-### 🏠 Homepage (`homepage.test.ts`)
+| Test Suite         | File               | What It Verifies                                                                                                                                       |
+| ------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Homepage**       | `homepage.test.ts` | Navigation, hero section, feature blocks, footer links, contact details, social media                                                                  |
+| **Authentication** | `login.test.ts`    | Login form rendering, multi-role login (System Configurator, Product Manager, Data Manager, Security Manager, Support Manager), post-login redirection |
+| **Shop**           | `shop.test.ts`     | Product grid (10 items), individual product detail pages (name, price), search bar, sort controls                                                      |
+| **Contact Us**     | `contact.test.ts`  | Form submission (success + validation errors), sidebar contact info (phone, email, company), navigation flow                                           |
+| **Services**       | `services.test.ts` | Service highlights, quotes carousel, customer testimonials                                                                                             |
 
-- **Navigation & Header**: Verifies logo, main menu links, "Sign in" button, search modal, and cart icon.
-- **Hero Section**: Checks for correct headlines, subtext, and call-to-action buttons.
-- **Feature Blocks**: Validates visibility of "Your Meal, Your Way" section and statistical numbers.
-- **Footer**: Ensures integrity of "Useful Links", "About us", contact details, social media links, and copyright notices.
+**Playwright configuration** ([`playwright.config.ts`](playwright.config.ts)):
 
-### 🔐 Authentication (`login.test.ts`)
+- Browser: Chromium (Desktop Chrome device profile)
+- Workers: 4 (fully parallel)
+- Retries: 0 (failures are real incidents, not flakes)
+- Screenshots: captured on first failure
+- Traces: captured on first retry
 
-- **Login Flow**: Verifies navigation to the login page and form existence.
-- **Multi-Role Support**: Validates successful login for key roles: System Configurator, Product Manager, Data Manager, Security Manager, and Support Manager.
-- **Redirection**: Ensures users are correctly redirected to the Odoo backend upon successful login.
+## 📡 Monitoring & Observability
 
-### 🛍️ Shop (`shop.test.ts`)
+When a test fails, the [`report-error`](server/services/report-error.ts) service orchestrates a three-pronged response:
 
-- **Product Grid**: Verifies the display of the product grid, ensuring exactly 10 items are shown.
-- **Product Details**: Iterates through all products (e.g., "Low Carb Meal Plan", "Superfood Boost") to verify that clicking them opens the correct detail page with accurate names and prices.
-- **Search & Sort**: Checks for the existence of the search bar and sorting options.
+```
+Test Failure
+    ├── Sentry SDK ──────────► Better Stack Errors  (error + test metadata)
+    ├── Pino logger ─────────► Better Stack Logs    (structured error context)
+    └── Supabase upload ─────► Supabase Storage     (timestamped screenshot)
+```
 
-### 📞 Contact Us (`contact.test.ts`)
+Each failure record includes the test title, status, duration, retry count, annotations, sanitized error message, and stack trace (with ANSI codes stripped for readability).
 
-- **Form Validation**: Tests both successful submission and error handling for empty/invalid inputs.
-- **Information Accuracy**: Verifies sidebar contact details (Phone, Email, Company).
-- **Navigation**: Ensures smooth navigation from the homepage to the contact section.
+## 🔄 CI/CD
 
-### 🛠️ Services (`services.test.ts`)
+The GitHub Actions workflow ([`.github/workflows/aca-deploy.yml`](.github/workflows/aca-deploy.yml)) automates deployment on every push to `main`:
 
-- **Content Verification**: Validates service highlights like "Fresh Ingredients" and "Seasonal Specials".
-- **Interactive Elements**: Checks the functionality of the quotes carousel.
-- **Social Proof**: Verifies the presence of the "Happy Customers" section.
+```
+Push to main
+    │
+    ▼
+┌────────────────────┐    ┌──────────────────────┐    ┌─────────────────────────┐
+│  Build Docker image│ ──►│  Push to ACR         │──► │  Update Container App   │
+│                    │    │  :latest + :sha      │    │  Job with new image     │
+└────────────────────┘    └──────────────────────┘    └─────────────────────────┘
+```
 
-## 🛡️ Monitoring Strategy
+| Step       | Detail                                                                  |
+| ---------- | ----------------------------------------------------------------------- |
+| **Build**  | Multi-tag Docker image (`latest` + commit SHA)                          |
+| **Push**   | Azure Container Registry (ACR)                                          |
+| **Deploy** | `az containerapp job update` targeting the `esmos-monitor-job` resource |
+| **Auth**   | OIDC with Azure Managed Identity (keyless, no stored credentials)       |
 
-If any test fails, it will automatically capture a screenshot and report the error to the configured monitoring services.
+The workflow also supports `workflow_dispatch` for manual deployments.
 
-- **Better Stack Errors**: Reports the error to Better Stack Errors.
-- **Better Stack Logs**: Logs the error to Better Stack Logs.
-- **Supabase Storage**: Uploads the screenshot to Supabase Storage.
+## 📂 Project Structure
 
-## 🏗️ Execution Architecture
+```
+esmos-monitor/
+├── .github/workflows/
+│   └── aca-deploy.yml          # CI/CD pipeline
+├── server/
+│   ├── env.ts                  # Environment validation (T3 Env + Zod)
+│   ├── lib/
+│   │   ├── pino.ts             # Logger setup (Pino → Better Stack + pretty-print)
+│   │   ├── sentry.ts           # Sentry initialization
+│   │   └── supabase.ts         # Supabase client
+│   ├── services/
+│   │   ├── report-error.ts     # Error reporting orchestrator
+│   │   └── upload-screenshot.ts # Screenshot upload to Supabase Storage
+│   └── tests/e2e/
+│       ├── homepage.test.ts
+│       ├── login.test.ts
+│       ├── shop.test.ts
+│       ├── contact.test.ts
+│       └── services.test.ts
+├── Dockerfile                  # Production container (Playwright base image)
+├── playwright.config.ts        # Test runner configuration
+├── package.json
+├── tsconfig.json               # Strict TypeScript configuration
+└── .env.example                # Environment variable template
+```
 
-To optimize costs and performance, the architecture decouples the scheduling logic from the test execution:
+## 📄 License
 
-1.  **Trigger (Azure Function)**: A lightweight Azure Function that runs every 10 minutes.
-    - Checks the status of the target Azure VM.
-    - If the VM is **Running**, it triggers the Container App Job.
-    - If the VM is **Stopped**, it skips execution entirely.
-
-2.  **Execution (Container App Job)**: The job runs the Playwright tests immediately when triggered, without needing to perform any environment checks itself.
-
-## 🚀 CI/CD
-
-A GitHub Actions workflow (`.github/workflows/deploy.yml`) handles deployment:
-
-1.  **Trigger**: Pushes to `main`.
-2.  **Build**: Builds the Docker image.
-3.  **Push**: Pushes the image to Azure Container Registry (ACR).
-4.  **Deploy**: Updates the Azure Container App Job with the new image.
-5.  **Authentication**: Uses **OpenID Connect (OIDC)** with Azure Managed Identity for secure, keyless access.
+This project is part of the IS213 Enterprise Solution Management coursework.
