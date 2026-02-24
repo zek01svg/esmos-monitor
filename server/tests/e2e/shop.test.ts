@@ -49,9 +49,9 @@ test.describe('Shop Page', () => {
     await expect(productGrid).toBeVisible();
   });
 
-  test('should have 10 products on display', async ({ page }) => {
+  test('should have 13 products on display', async ({ page }) => {
     const products = page.locator('.oe_product');
-    await expect(products).toHaveCount(10);
+    await expect(products).toHaveCount(13);
   });
 
   test('should display correct products', async ({ page }) => {
@@ -66,6 +66,9 @@ test.describe('Shop Page', () => {
       'Diabetic-Friendly Meal Plan',
       'Detox Plan',
       "Athlete's Power Pack",
+      'Gluten-Free Meal Plan',
+      'Heart-Healthy Plan',
+      'Keto Kickstart Plan',
     ];
 
     for (const productName of productNames) {
@@ -87,6 +90,9 @@ test.describe('Shop Page', () => {
       { name: 'Diabetic-Friendly Meal Plan', price: '52.00' },
       { name: 'Detox Plan', price: '50.00' },
       { name: "Athlete's Power Pack", price: '49.00' },
+      { name: 'Gluten-Free Meal Plan', price: '43.00' },
+      { name: 'Heart-Healthy Plan', price: '45.00' },
+      { name: 'Keto Kickstart Plan', price: '36.00' },
     ];
 
     for (const product of products) {
