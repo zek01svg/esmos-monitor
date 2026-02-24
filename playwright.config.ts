@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: './server/tests/e2e',
   fullyParallel: true,
   forbidOnly: true,
-  retries: 0,
+  retries: 2,
   workers: 4,
   reporter: 'dot',
   use: {

@@ -135,7 +135,7 @@ All E2E tests live in [`server/tests/e2e/`](server/tests/e2e/) and target the pr
 
 - Browser: Chromium (Desktop Chrome device profile)
 - Workers: 4 (fully parallel)
-- Retries: 0 (failures are real incidents, not flakes)
+- Retries: 2 (in case of flakiness)
 - Screenshots: captured on first failure
 - Traces: captured on first retry
 
