@@ -15,9 +15,7 @@ test.describe('Login Flow', () => {
     }) => {
       await page.goto('/');
       await page.getByRole('link', { name: 'Sign in' }).click();
-      await expect(page).toHaveURL(
-        'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069/web/login',
-      );
+      await expect(page).toHaveURL(`${process.env.APP_URL}/web/login`);
       await expect(page.getByRole('form')).toBeVisible();
 
       const emailInput = page.getByRole('textbox', { name: 'Email' });
@@ -50,7 +48,7 @@ test.describe('Login Flow', () => {
           .fill(process.env.ADMIN_PASSWORD!);
         await page.getByRole('button', { name: 'Log in' }).click();
         await page.waitForURL(
-          'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069/web#action=117&cids=1&menu_id=74',
+          `${process.env.APP_URL}/web#action=117&cids=1&menu_id=74`,
           { timeout: 30000 },
         );
         await expect(page.getByTitle('Home Menu')).toBeVisible();

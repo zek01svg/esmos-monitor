@@ -1,6 +1,6 @@
 # 🛡️ ESMOS Monitor
 
-> End-to-end UI monitoring for the [Everyday Sustainable Meals Ordering System (ESMOS)](http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069) platform, powered by Playwright and deployed as an Azure Container App Job.
+> End-to-end UI monitoring for the [Everyday Sustainable Meals Ordering System (ESMOS)](http://prod-v3.eastasia.cloudapp.azure.com:8069/) platform, powered by Playwright and deployed as an Azure Container App Job.
 
 [![Deploy](https://github.com/zek01svg/esmos-monitor/actions/workflows/aca-deploy.yml/badge.svg)](https://github.com/zek01svg/esmos-monitor/actions/workflows/aca-deploy.yml)
 

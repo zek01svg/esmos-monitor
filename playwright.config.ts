@@ -11,7 +11,7 @@ export default defineConfig({
   workers: 4,
   reporter: 'dot',
   use: {
-    baseURL: 'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069',
+    baseURL: process.env.APP_URL,
     trace: 'on-first-retry',
     screenshot: 'on-first-failure',
   },

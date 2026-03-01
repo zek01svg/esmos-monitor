@@ -16,9 +16,7 @@ test.describe('Homepage', () => {
 
   test('should have correct title and url', async ({ page }) => {
     await expect(page).toHaveTitle('Home | My Website');
-    await expect(page).toHaveURL(
-      'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069/',
-    );
+    await expect(page).toHaveURL(process.env.APP_URL!);
   });
 
   test('header should have all elements', async ({ page }) => {

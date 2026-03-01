@@ -65,10 +65,9 @@ test.describe('Contact Us Page', () => {
       .getByRole('textbox', { name: 'Question' })
       .fill('How will the ESM teaching team mess up the site?');
     await page.getByRole('button', { name: 'Submit' }).click();
-    await page.waitForURL(
-      'http://e08g08t01-prod.eastasia.cloudapp.azure.com:8069/contactus-thank-you',
-      { timeout: 30000 },
-    );
+    await page.waitForURL(`${process.env.APP_URL}/contactus-thank-you`, {
+      timeout: 30000,
+    });
     await expect(page.locator('.d-block.fa')).toBeVisible(); // thumbs up graphic
     await expect(page.locator('h1')).toContainText('Thank You!');
     await expect(page.locator('#wrap')).toContainText(
